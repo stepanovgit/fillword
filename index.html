@@ -160,6 +160,31 @@
             box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
         }
 
+        /* Magnifier Styles */
+        .magnifier {
+            position: fixed;
+            display: none; /* Hidden by default */
+            width: 70px;
+            height: 70px;
+            background: #fff;
+            border: 4px solid var(--secondary-color);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary-color);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            pointer-events: none; /* Allows cursor to interact with elements below it */
+            transform: translate(-50%, -130%); /* Position above the finger */
+            text-transform: uppercase;
+        }
+        
+        .magnifier.visible {
+            display: flex;
+        }
+
         /* Questions Styles */
         .questions-wrapper {
             flex: 1 1 400px;
@@ -282,6 +307,8 @@
 </head>
 <body>
 
+    <div id="magnifier" class="magnifier"></div>
+
     <div class="header-container">
         <svg class="logo-svg" id="_Слой_2" data-name="Слой 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380.39 175.96">
           <defs>
@@ -305,7 +332,7 @@
         <h3>Как играть:</h3>
         <ul>
             <li>В сетке 18х18 спрятаны слова-ответы на вопросы. Слова располагаются по прямым линиям: <b>сверху вниз</b> или <b>слева направо</b>.</li>
-            <li>Ищите слово, зажмите левую кнопку мыши (или коснитесь экрана пальцем) на первой букве и протяните до последней буквы слова.</li>
+            <li>Ищите слово, зажмите левую кнопку мыши (или коснитесь экрана пальцем) на первой букве и протяните до последней буквы слова. <b>Для удобства игры на телефоне над пальцем будет появляться увеличительная линза с буквой.</b></li>
             <li>Если вам нужна помощь, нажмите на кнопку-подсказку <button class="hint-btn" style="margin:0; padding: 2px 4px; pointer-events:none;">💡</button> рядом с текстом вопроса. На две секунды на игровом поле подсветится одна случайная буква из этого слова.</li>
             <li>Если слово угадано верно, оно окрасится в зеленый цвет, а ответ появится рядом с соответствующим вопросом в списке справа.</li>
         </ul>
@@ -355,7 +382,7 @@
             {"q": "Какой туризм на природе приносит значительную пользу для физического, психического и социального здоровья, а также способствует личностному развитию?", "a": "ПЕШИЙ"},
             {"q": "Этот зелёный друг, знакомый каждому из нас с детства, приносит немалую пользу человеку и природе (поедает вредителей, служит пищей другим, обогащает почву).", "a": "КУЗНЕЧИК"},
             {"q": "В басне Ивана Крылова она в тёплое время пела и плясала, а с наступлением холодов оказалась без запасов, в отличие от её соседа муравья.", "a": "СТРЕКОЗА"},
-            {"q": "В природе кислород образуется в процессе сложной цепочки химических реакций, в ходе которых растения, водоросли и некоторые бактерии превращают неорганические вещества в органические. Что это за процесс?", "a": "ФОТОСИНТЕЗ"},
+            {"q": "В природе кислород образуется в процессе сложной цепочки химических реагирований, в ходе которых растения, водоросли и некоторые бактерии превращают неорганические вещества в органические. Что это за процесс?", "a": "ФОТОСИНТЕЗ"},
             {"q": "Он работает в заповеднике и защищает природу. Его основная задача — обеспечить прозрачность и законность действий, охрану окружающей среды. Следит за тем, чтобы не нарушали правила.", "a": "ГОСИНСПЕКТОР"},
             {"q": "Это особая территория, где защищают часть природы. Здесь охраняют определённые виды животных, растений, геологические объекты или исторические достопримечательности.", "a": "ЗАКАЗНИК"},
             {"q": "Это обустроенный и особо охраняемый прогулочно-познавательный маршрут, создаваемый с целью экологического просвещения населения через установленные по маршруту информационные стенды.", "a": "ЭКОТРОПА"},
@@ -492,6 +519,7 @@
         let isDragging = false;
         let startCell = null;
         let currentCells = [];
+        const magnifier = document.getElementById('magnifier');
 
         function getCellData(el) {
             if (!el || !el.classList.contains('cell')) return null;
@@ -503,6 +531,26 @@
                 return document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
             }
             return e.target;
+        }
+
+        function updateMagnifier(e, cell) {
+            if (!cell) {
+                magnifier.classList.remove('visible');
+                return;
+            }
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            magnifier.textContent = cell.el.textContent;
+            magnifier.style.left = clientX + 'px';
+            magnifier.style.top = clientY + 'px';
+            magnifier.classList.add('visible');
         }
 
         function updateSelection(cell) {
@@ -573,6 +621,7 @@
                 isDragging = true;
                 startCell = cell;
                 updateSelection(cell);
+                updateMagnifier(e, cell);
             }
         }
 
@@ -582,6 +631,9 @@
             let cell = getCellData(el);
             if (cell) {
                 updateSelection(cell);
+                updateMagnifier(e, cell);
+            } else {
+                magnifier.classList.remove('visible');
             }
             if(e.cancelable) e.preventDefault();
         }
@@ -593,12 +645,15 @@
             document.querySelectorAll('.cell.selected').forEach(el => el.classList.remove('selected'));
             currentCells = [];
             startCell = null;
+            magnifier.classList.remove('visible');
         }
 
+        // Mouse Events
         gridEl.addEventListener('mousedown', handleStart);
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
 
+        // Touch Events
         gridEl.addEventListener('touchstart', handleStart, {passive: false});
         gridEl.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
