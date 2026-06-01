@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Охрана окружающей среды</title>
+    <style>
+        :root {
+            --primary-color: #064f4e;
+            --secondary-color: #e63c15;
+            --primary-light: #A5D6A7;
+            --bg-color: #F1F8E9;
+            --cell-size: 32px;
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo-svg {
+            height: 70px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0 0 15px 0;
+            font-size: 28px;
+        }
+
+        .header-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #444;
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin: 0 0 20px 0;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+
+        .instructions {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .instructions ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1050px;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .counter {
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1250px;
+            width: 100%;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Grid Styles */
+        .grid-wrapper {
+            flex: 0 0 auto;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(18, var(--cell-size));
+            grid-template-rows: repeat(18, var(--cell-size));
+            gap: 2px;
+            background: #e0e0e0;
+            border: 2px solid #e0e0e0;
+            touch-action: none;
+        }
+
+        .cell {
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.1s, color 0.1s;
+        }
+
+        .cell.selected {
+            background: var(--primary-light);
+            color: #000;
+        }
+
+        .cell.found {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .cell.hint-flash {
+            background: var(--secondary-color) !important;
+            color: #fff !important;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+        }
+
+        /* Questions Styles */
+        .questions-wrapper {
+            flex: 1 1 400px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-height: calc((var(--cell-size) * 18) + 24px);
+            overflow-y: auto;
+        }
+
+        .questions-wrapper h2 {
+    margin-top: 0;
+    font-size: 20px;
+    color: var(--primary-color);
+    position: sticky;
+    top: -20px;
+    background: #fff;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    border-bottom: 2px solid var(--bg-color);
+    z-index: 10;
+}
+
+        .question-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: opacity 0.3s;
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .question-text {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .question-item.found .question-text {
+            color: #888;
+        }
+
+        .hint-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 6px;
+            margin-left: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            transition: transform 0.1s, background-color 0.2s;
+            vertical-align: middle;
+        }
+
+        .hint-btn:hover {
+            transform: scale(1.1);
+            background-color: #e0e0e0;
+        }
+
+        .hint-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .question-item.found .hint-btn {
+            display: none;
+        }
+
+        .answer-box {
+            display: none;
+            font-weight: bold;
+            color: var(--secondary-color);
+            background: var(--bg-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .question-item.found .answer-box {
+            display: inline-block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            :root {
+                --cell-size: 20px;
+            }
+            .cell {
+                font-size: 13px;
+            }
+            .questions-wrapper {
+                max-height: 400px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            :root {
+                --cell-size: 17px;
+            }
+            .cell {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <svg class="logo-svg" id="_Слой_2" data-name="Слой 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380.39 175.96">
+          <defs>
+            <style>
+              .cls-1 { fill: #064f4e; }
+              .cls-2 { fill: #e63c15; }
+            </style>
+          </defs>
+          <g id="_Слой_1-2" data-name="Слой 1">
+            <path class="cls-2" d="M278.61,70.93c10.06,0,18.52-8.46,18.52-18.5V0h12.23v52.42c0,10.05,8.46,18.5,18.52,18.5h52.5v12.21h-52.5c-10.06,0-18.52,8.45-18.52,18.5v52.43h-12.23v-52.43c0-10.05-8.46-18.5-18.52-18.5h-52.5v-12.21h52.5Z"/>
+            <path class="cls-1" d="M54.45,70.94H0v15.95h68.23c2.74,0,5.31,2.92,5.31,6.01l-.03,22.58H11.25v15.95l62.29.03v22.56c0,3.08-2.58,6.01-5.31,6.01H0v15.95h54.45c20.45,0,36.48-15.69,36.48-35.72v-33.58c0-20.03-16.02-35.72-36.48-35.72"/>
+            <polygon class="cls-1" points="185.61 70.94 185.61 115.58 122.78 115.58 122.78 70.94 105.61 70.94 105.61 175.96 122.78 175.96 122.78 131.34 185.61 131.34 185.61 175.96 202.79 175.96 202.79 70.94 185.61 70.94"/>
+          </g>
+        </svg>
+
+        <h1>Охрана окружающей среды</h1>
+        <p class="header-text">Всемирный день окружающей среды (также известный как День эколога) отмечается ежегодно 5 июня. Этот праздник, учрежденный ООН в 1972 году, служит главным глобальным инструментом для привлечения внимания общества к экологическим проблемам и стимулирования действий по защите природы.</p>
+    </div>
+
+    <div class="instructions">
+        <h3>Как играть:</h3>
+        <ul>
+            <li>В сетке 18х18 спрятаны слова-ответы на вопросы. Слова располагаются по прямым линиям: <b>сверху вниз</b> или <b>слева направо</b>. В этой версии слова больше не пересекаются друг с другом.</li>
+            <li>Ищите слово, зажмите левую кнопку мыши (или коснитесь экрана пальцем) на первой букве и протяните до последней буквы слова.</li>
+            <li>Если вам нужна помощь, нажмите на кнопку-подсказку <button class="hint-btn" style="margin:0; padding: 2px 4px; pointer-events:none;">💡</button> рядом с текстом вопроса. На две секунды на игровом поле подсветится одна случайная буква из этого слова.</li>
+            <li>Если слово угадано верно, оно окрасится в зеленый цвет, а ответ появится рядом с соответствующим вопросом в списке справа.</li>
+        </ul>
+    </div>
+
+    <div class="status-bar">
+        <span>Прогресс:</span>
+        <div class="counter"><span id="score">0</span> / 31 вопроса</div>
+    </div>
+
+    <div class="game-container">
+        <div class="grid-wrapper">
+            <div class="grid" id="grid"></div>
+        </div>
+        
+        <div class="questions-wrapper">
+            <h2>Вопросы</h2>
+            <div id="questions-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const rawData = [
+            {"q": "Это наш дом!", "a": "ЗЕМЛЯ"},
+            {"q": "Она сухая и её цель – таковой и остаться, и стать перегноем", "a": "ТРАВА"},
+            {"q": "Он маленький, размером с резинку (стирательный ластик), от него может вспыхнуть большой пожар", "a": "ОКУРОК"},
+            {"q": "Мусор другими словами", "a": "ОТХОДЫ"},
+            {"q": "Всё живое и неживое, что возникло и существует без участия человека", "a": "ПРИРОДА"},
+            {"q": "Совместно обитающие живые организмы и участок земли, на котором они чувствуют себя как дома (например, лес, луг, озеро).", "a": "ЭКОСИСТЕМА"},
+            {"q": "Человеческая цивилизация существует на планете Земля потому, что она им их даёт / Благодаря им человечество существует на Земле", "a": "РЕСУРСЫ"},
+            {"q": "Комплексная система наблюдений за состоянием окружающей среды, оценка и прогноз изменений в ней", "a": "МОНИТОРИНГ"},
+            {"q": "Участок земли, где вся природа находится под строгой охраной, запрещена любая хозяйственная деятельность", "a": "ЗАПОВЕДНИК"},
+            {"q": "Наука о том, как жить в мире с природой, не нарушая её законов. / Валентин Распутин сказал: «……….. стала самым громким словом на Земле, громче войны и стихии...»", "a": "ЭКОЛОГИЯ"},
+            {"q": "М. Пришвин сказал: Для иных природа — это дрова, уголь, руда, или дача, или просто пейзаж. Для меня природа — это среда, из которой, как цветы, выросли все наши человеческие ….. (кто?)", "a": "ТАЛАНТЫ"},
+            {"q": "Михаил Пришвин сказал: «Охранять природу — значит охранять (её)» кого её?", "a": "РОДИНА"},
+            {"q": "Как Владимир Высоцкий назвал Волгу в «Песне о Волге»: «Как по Волге-матушке, по реке-……………….. — Всё суда с товарами, струги да ладьи»", "a": "КОРМИЛИЦА"},
+            {"q": "Живёте в Иркутской области или в Бурятии? Значит вы знаете, кого у нас называют Батюшкой", "a": "БАЙКАЛ"},
+            {"q": "Валентин Распутин о природе: «Все недоброе в ……….. человека должно, кажется, исчезнуть в прикосновении с природой - этим непосредственным выражением красоты и добра». Где должно исчезнуть недоброе?", "a": "СЕРДЦЕ"},
+            {"q": "Общая масса всех живых организмов на определённой территории или в конкретной экосистеме. Это может быть вес растений, животных, грибов, бактерий и других живых существ.", "a": "БИОМАССА"},
+            {"q": "В.В.Путин о природе: «Природа России является ее национальным ……………, которое нужно сберечь для будущих поколений.» Чем именно?", "a": "ДОСТОЯНИЕ"},
+            {"q": "Это не просто скопление деревьев, а сложная экосистема — сложный комплекс живой и неживой природы, где все компоненты взаимосвязаны и влияют друг на друга.", "a": "ЛЕС"},
+            {"q": "Если лес – «лёгкие» планеты, то ОНО – «почки» планеты. Оно помогает фильтровать воду, предотвращать паводки и наводнения.", "a": "БОЛОТО"},
+            {"q": "Эта на первый взгляд суровая территория приносит не мало пользы людям: природные достопримечательности и экологические маршруты, этнотуризм и традиционная деятельность коренных народов.", "a": "ТУНДРА"},
+            {"q": "Его можно назвать настоящей здравницей человека, там лечат буквально всё. Природными лекарями выступают солнце, песок, соленая вода и его воздух. Лечение его водой называется талассотерапией.", "a": "МОРЕ"},
+            {"q": "Она - жизненно важный ресурс, который выполняет множество функций как в экосистемах, так и в жизни человека. Является источником питательных веществ для растений, в ней происходит постоянный круговорот органических веществ.", "a": "ПОЧВА"},
+            {"q": "Эта река играет ключевую роль в произведении Валентина Распутина «Прощание с Матёрой», где действие происходит в 1960-х годах на острове Матёра.", "a": "АНГАРА"},
+            {"q": "Какой туризм на природе приносит значительную пользу для физического, психического и социального здоровья, а также способствует личностному развитию?", "a": "ПЕШИЙ"},
+            {"q": "Этот зелёный друг, знакомый каждому из нас с детства, приносит немалую пользу человеку и природе (поедает вредителей, служит пищей другим, обогащает почву).", "a": "КУЗНЕЧИК"},
+            {"q": "В басне Ивана Крылова она в тёплое время пела и плясала, а с наступлением холодов оказалась без запасов, в отличие от её соседа муравья.", "a": "СТРЕКОЗА"},
+            {"q": "В природе кислород образуется в процессе сложной цепочки химических реакций, в ходе которых растения, водоросли и некоторые бактерии превращают неорганические вещества в органические. Что это за процесс?", "a": "ФОТОСИНТЕЗ"},
+            {"q": "Он работает в заповеднике и защищает природу. Его основная задача — обеспечить прозрачность и законность действий, охрану окружающей среды. Следит за тем, чтобы не нарушали правила.", "a": "ГОСИНСПЕКТОР"},
+            {"q": "Это особая территория, где защищают часть природы. Здесь охраняют определённые виды животных, растений, геологические объекты или исторические достопримечательности.", "a": "ЗАКАЗНИК"},
+            {"q": "Это обустроенный и особо охраняемый прогулочно-познавательный маршрут, создаваемый с целью экологического просвещения населения через установленные по маршруту информационные стенды.", "a": "ЭКОТРОПА"},
+            {"q": "Человек, который добровольно и бескорыстно помогает защищать природу и решать экологические проблемы. Он сажает деревья, убирает мусор, строит экотропы.", "a": "ЭКОВОЛОНТЁР"}
+        ];
+
+        const gridSize = 18;
+        const letters = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+        
+        const uniqueWords = [...new Set(rawData.map(item => item.a.toUpperCase()))];
+        let foundQuestionsCount = 0;
+        const totalQuestions = rawData.length;
+        let wordPlacements = {}; 
+
+        // Render Questions UI
+        const questionsListEl = document.getElementById('questions-list');
+        rawData.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'question-item';
+            div.id = 'q-' + index;
+            div.dataset.answer = item.a.toUpperCase();
+            
+            div.innerHTML = `
+                <span class="question-text">
+                    <b>${index + 1}.</b> ${item.q}
+                    <button class="hint-btn" onclick="triggerHint('${item.a.toUpperCase()}', this)" title="Показать случайную букву">💡</button>
+                </span>
+                <span class="answer-box">${item.a}</span>
+            `;
+            questionsListEl.appendChild(div);
+        });
+
+        // Grid Generation Logic (Strict No Intersections)
+        let gridData = [];
+        let placementSuccess = false;
+
+        function attemptPlacement() {
+            gridData = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
+            let localPlacements = {};
+            let wordsToPlace = [...uniqueWords].sort((a, b) => b.length - a.length);
+
+            for (let word of wordsToPlace) {
+                let placed = false;
+                let attempts = 0;
+                while (!placed && attempts < 1000) {
+                    let dir = Math.random() < 0.5 ? 0 : 1; 
+                    let row = Math.floor(Math.random() * gridSize);
+                    let col = Math.floor(Math.random() * gridSize);
+
+                    if (dir === 0 && col + word.length <= gridSize) {
+                        let canPlace = true;
+                        for (let i = 0; i < word.length; i++) {
+                            if (gridData[row][col + i] !== '') {
+                                canPlace = false; break;
+                            }
+                        }
+                        if (canPlace) {
+                            localPlacements[word] = [];
+                            for (let i = 0; i < word.length; i++) {
+                                gridData[row][col + i] = word[i];
+                                localPlacements[word].push({r: row, c: col + i});
+                            }
+                            placed = true;
+                        }
+                    } else if (dir === 1 && row + word.length <= gridSize) {
+                        let canPlace = true;
+                        for (let i = 0; i < word.length; i++) {
+                            if (gridData[row + i][col] !== '') {
+                                canPlace = false; break;
+                            }
+                        }
+                        if (canPlace) {
+                            localPlacements[word] = [];
+                            for (let i = 0; i < word.length; i++) {
+                                gridData[row + i][col] = word[i];
+                                localPlacements[word].push({r: row + i, c: col});
+                            }
+                            placed = true;
+                        }
+                    }
+                    attempts++;
+                }
+                if (!placed) return false; 
+            }
+            wordPlacements = localPlacements;
+            return true;
+        }
+
+        while (!placementSuccess) {
+            placementSuccess = attemptPlacement();
+        }
+
+        const gridEl = document.getElementById('grid');
+        for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
+                if (gridData[r][c] === '') {
+                    gridData[r][c] = letters[Math.floor(Math.random() * letters.length)];
+                }
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                cell.textContent = gridData[r][c];
+                gridEl.appendChild(cell);
+            }
+        }
+
+        // Hint System Logic
+        window.triggerHint = function(word, btnElement) {
+            if (!wordPlacements[word]) return;
+            
+            const coords = wordPlacements[word];
+            const undiscoveredCoords = coords.filter(coord => {
+                const el = document.querySelector(`.cell[data-r="${coord.r}"][data-c="${coord.c}"]`);
+                return el && !el.classList.contains('found');
+            });
+
+            const targetCoords = undiscoveredCoords.length > 0 ? undiscoveredCoords : coords;
+            const randomCellCoord = targetCoords[Math.floor(Math.random() * targetCoords.length)];
+            
+            const cellEl = document.querySelector(`.cell[data-r="${randomCellCoord.r}"][data-c="${randomCellCoord.c}"]`);
+            if (cellEl) {
+                cellEl.classList.add('hint-flash');
+                btnElement.disabled = true;
+                
+                setTimeout(() => {
+                    cellEl.classList.remove('hint-flash');
+                    btnElement.disabled = false;
+                }, 2000);
+            }
+        };
+
+        // Interaction Logic
+        let isDragging = false;
+        let startCell = null;
+        let currentCells = [];
+
+        function getCellData(el) {
+            if (!el || !el.classList.contains('cell')) return null;
+            return { r: parseInt(el.dataset.r), c: parseInt(el.dataset.c), el: el };
+        }
+
+        function getElementFromEvent(e) {
+            if (e.touches && e.touches.length > 0) {
+                return document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            return e.target;
+        }
+
+        function updateSelection(cell) {
+            currentCells = [];
+            if (startCell.r === cell.r) {
+                let minC = Math.min(startCell.c, cell.c);
+                let maxC = Math.max(startCell.c, cell.c);
+                for (let c = minC; c <= maxC; c++) {
+                    let el = document.querySelector(`.cell[data-r="${startCell.r}"][data-c="${c}"]`);
+                    if(el) currentCells.push(el);
+                }
+            } else if (startCell.c === cell.c) {
+                let minR = Math.min(startCell.r, cell.r);
+                let maxR = Math.max(startCell.r, cell.r);
+                for (let r = minR; r <= maxR; r++) {
+                    let el = document.querySelector(`.cell[data-r="${r}"][data-c="${startCell.c}"]`);
+                    if(el) currentCells.push(el);
+                }
+            } else {
+                let el = document.querySelector(`.cell[data-r="${startCell.r}"][data-c="${startCell.c}"]`);
+                if(el) currentCells.push(el);
+            }
+
+            document.querySelectorAll('.cell.selected').forEach(el => el.classList.remove('selected'));
+            currentCells.forEach(el => el.classList.add('selected'));
+        }
+
+        function checkWord() {
+            if (currentCells.length < 3) return;
+
+            let wordStr = currentCells.map(el => el.textContent).join('');
+            let reverseWordStr = wordStr.split('').reverse().join('');
+
+            let matchedWord = null;
+            if (uniqueWords.includes(wordStr)) matchedWord = wordStr;
+            else if (uniqueWords.includes(reverseWordStr)) matchedWord = reverseWordStr;
+
+            if (matchedWord) {
+                let foundAny = false;
+                const qItems = document.querySelectorAll('.question-item');
+                qItems.forEach(item => {
+                    if (item.dataset.answer === matchedWord && !item.classList.contains('found')) {
+                        item.classList.add('found');
+                        foundQuestionsCount++;
+                        foundAny = true;
+                        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                });
+
+                if (foundAny) {
+                    currentCells.forEach(el => {
+                        el.classList.remove('selected');
+                        el.classList.add('found');
+                    });
+                    document.getElementById('score').textContent = foundQuestionsCount;
+
+                    if (foundQuestionsCount === totalQuestions) {
+                        setTimeout(() => alert("Поздравляем! Вы нашли все ответы и успешно завершили филворд!"), 300);
+                    }
+                }
+            }
+        }
+
+        function handleStart(e) {
+            let el = getElementFromEvent(e);
+            let cell = getCellData(el);
+            if (cell) {
+                isDragging = true;
+                startCell = cell;
+                updateSelection(cell);
+            }
+        }
+
+        function handleMove(e) {
+            if (!isDragging) return;
+            let el = getElementFromEvent(e);
+            let cell = getCellData(el);
+            if (cell) {
+                updateSelection(cell);
+            }
+            if(e.cancelable) e.preventDefault();
+        }
+
+        function handleEnd(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            checkWord();
+            document.querySelectorAll('.cell.selected').forEach(el => el.classList.remove('selected'));
+            currentCells = [];
+            startCell = null;
+        }
+
+        gridEl.addEventListener('mousedown', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        gridEl.addEventListener('touchstart', handleStart, {passive: false});
+        gridEl.addEventListener('touchmove', handleMove, {passive: false});
+        window.addEventListener('touchend', handleEnd);
+
+    </script>
+</body>
+</html>
